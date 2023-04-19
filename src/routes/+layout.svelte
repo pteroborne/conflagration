@@ -2,6 +2,7 @@
     import { onMount } from 'svelte';
     import { supabase } from '$lib/supabaseClient.js';
     import { goto } from '$app/navigation';
+    import '../app.css'
 
     onMount(() => {
         const unsubscribe = supabase.auth.onAuthStateChange((event, session) => {
@@ -41,6 +42,7 @@
                 Dashboard
             </a>
         </div>
+    </div>
 </nav>
 
 <section class="section">

@@ -46,3 +46,18 @@ const initialCharacter = {
 
 export const characterStore = writable(initialCharacter);
 
+export const characterSkillsStore = writable([]);
+
+export const characterArrowheads = writable([]);
+
+export const chosenWeaponsStore = writable([]);
+
+export const characterArmor = writable([]);
+
+// chosenWeaponsStore.subscribe(weapons => {
+//     console.log('Chosen Weapons:', weapons);
+// });
+//
+// characterArrowheads.subscribe(weapons => {
+//     console.log('Chosen arrowheads:', weapons);
+// });

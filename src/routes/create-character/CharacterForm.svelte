@@ -2,7 +2,10 @@
     import {createEventDispatcher} from 'svelte';
     import CharacterFormField from './CharacterFormField.svelte';
     import CharacterFormShadedField from './CharacterFormShadedField.svelte';
+    import SkillsTab from './SkillsTab.svelte';
     import {characterStore} from "$lib/characterStore.js";
+    import WeaponsTab from "./WeaponsTab.svelte";
+    import ArmorTab from "./ArmorTab.svelte";
 
 
     const dispatch = createEventDispatcher();
@@ -111,7 +114,6 @@
     }
 
 
-
     let activeTab = 'basic';
 </script>
 
@@ -128,6 +130,12 @@
             </li>
             <li class="{activeTab === 'physicalTolerances' ? 'is-active' : ''}"
                 on:click={() => (activeTab = 'physicalTolerances')}><a>Physical Tolerances</a></li>
+            <li class="{activeTab === 'skills' ? 'is-active' : ''}"
+                on:click={() => (activeTab = 'skills')}><a>Skills</a></li>
+            <li class="{activeTab === 'weapons' ? 'is-active' : ''}"
+                on:click={() => (activeTab = 'weapons')}><a>Weapons</a></li>
+            <li class="{activeTab === 'armor' ? 'is-active' : ''}"
+                on:click={() => (activeTab = 'armor')}><a>Armor</a></li>
         </ul>
     </div>
 
@@ -265,8 +273,24 @@
                 </div>
             </div>
         </fieldset>
+    </div>
 
+    <div class="tab-pane {activeTab === 'skills' ? 'is-active' : ''}">
+        {#if activeTab === 'skills'}
+            <SkillsTab/>
+        {/if}
+    </div>
 
+    <div class="tab-pane {activeTab === 'weapons' ? 'is-active' : ''}">
+        {#if activeTab === 'weapons'}
+            <WeaponsTab/>
+        {/if}
+    </div>
+
+    <div class="tab-pane {activeTab === 'armor' ? 'is-active' : ''}">
+        {#if activeTab === 'armor'}
+            <ArmorTab/>
+        {/if}
     </div>
 
 
@@ -279,14 +303,19 @@
                 </label>
                 <div class="field-body">
                     <div class="field">
-                        <input id="enforceRules" class="toggle-checkbox" type="checkbox" bind:checked="{enforceRules}"/>
-                        <label for="enforceRules" class="toggle"/>
+                        <label for="enforceRules" class="toggle">
+                            <input id="enforceRules" class="toggle-checkbox" type="checkbox"
+                                   bind:checked="{enforceRules}"/>
+                        </label>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+
 </form>
+
 
 <style>
     .tabs {
