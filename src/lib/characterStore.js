@@ -61,3 +61,6 @@ export const characterArmor = writable([]);
 // characterArrowheads.subscribe(weapons => {
 //     console.log('Chosen arrowheads:', weapons);
 // });
+characterArmor.subscribe(weapons => {
+    console.log('Chosen Weapons:', weapons);
+});

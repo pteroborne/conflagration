@@ -1,6 +1,7 @@
 <script>
     import {onMount} from "svelte";
     import {supabase} from "$lib/supabaseClient.js";
+    import ArmorSelect from "./ArmorSelect.svelte";
     import {characterArmor} from "$lib/characterStore.js";
 
     let armors = [];
@@ -22,7 +23,13 @@
         fetchArmorData();
     });
 
-    // Update characterArmor store as needed when selections are made
+    function handleArmorSelected(event) {
+        characterArmor.update((store) => {
+            const updatedStore = { ...store };
+            updatedStore[event.detail.label] = event.detail.armorData;
+            return updatedStore;
+        });
+    }
 </script>
 
 <!-- Stick figure body parts -->
@@ -40,55 +47,59 @@
         <line x1="50" y1="50" x2="70" y2="70" stroke="black"/>
     </svg>
 
-    <!-- Helmet select box -->
-    <label for="helmet" class="label" style="position: absolute; top: 5%; left: 35%;">Helmet:</label>
-    <div class="select" style="position: absolute; top: 5%; left: 45%;">
-        <select id="helmet">
-            {#each helmets as helmet}
-                <option value="{helmet.id}">{helmet.name}</option>
-            {/each}
-        </select>
-    </div>
-
-    <!-- Right Arm select box -->
-    <label for="right_arm" class="label" style="position: absolute; top: 25%; left: 65%;">Right Arm:</label>
-    <div class="select" style="position: absolute; top: 25%; left: 80%;">
-        <select id="right_arm">
-            {#each armors as armor}
-                <option value="{armor.id}">{armor.name}</option>
-            {/each}
-        </select>
-    </div>
-
-    <!-- Left Arm select box -->
-    <label for="left_arm" class="label" style="position: absolute; top: 25%; left: 5%;">Left Arm:</label>
-    <div class="select" style="position: absolute; top: 25%; left: 20%;">
-        <select id="left_arm">
-            {#each armors as armor}
-                <option value="{armor.id}">{armor.name}</option>
-            {/each}
-        </select>
-    </div>
-
-    <!-- Right Leg select box -->
-    <label for="right_leg" class="label" style="position: absolute; top: 70%; left: 60%;">Right Leg:</label>
-    <div class="select" style="position: absolute; top: 70%; left: 75%;">
-        <select id="right_leg">
-            {#each armors as armor}
-                <option value="{armor.id}">{armor.name}</option>
-            {/each}
-        </select>
-    </div>
-
-    <!-- Left Leg select box -->
-    <label for="left_leg" class="label" style="position: absolute; top: 70%; left: 5%;">Left Leg:</label>
-    <div class="select" style="position: absolute; top: 70%; left: 20%;">
-        <select id="left_leg">
-            {#each armors as armor}
-                <option value="{armor.id}">{armor.name}</option>
-            {/each}
-        </select>
-    </div>
+    <ArmorSelect
+            label="Helmet"
+            options="{helmets}"
+            defaultOption="None"
+            position="{{ top: '5%', left: '30%' }}"
+            on:armorSelected="{handleArmorSelected}"
+    />
+    <ArmorSelect
+            label="Right Arm"
+            options="{armors}"
+            defaultOption="None"
+            position="{{ top: '25%', left: '2%' }}"
+            showHalfArmorCheckbox="{true}"
+            on:armorSelected="{handleArmorSelected}"
+    />
+    <ArmorSelect
+            label="Left Arm"
+            options="{armors}"
+            defaultOption="None"
+            position="{{ top: '25%', left: '52%' }}"
+            showHalfArmorCheckbox="{true}"
+            on:armorSelected="{handleArmorSelected}"
+    />
+    <ArmorSelect
+            label="Right Leg"
+            options="{armors}"
+            defaultOption="None"
+            position="{{ top: '70%', left: '2%' }}"
+            showHalfArmorCheckbox="{true}"
+            on:armorSelected="{handleArmorSelected}"
+    />
+    <ArmorSelect
+            label="Left Leg"
+            options="{armors}"
+            defaultOption="None"
+            position="{{ top: '70%', left: '52%' }}"
+            showHalfArmorCheckbox="{true}"
+            on:armorSelected="{handleArmorSelected}"
+    />
+    <ArmorSelect
+            label="Torso"
+            options="{armors}"
+            defaultOption="None"
+            position="{{ top: '45%', left: '2%' }}"
+            on:armorSelected="{handleArmorSelected}"
+    />
+    <ArmorSelect
+            label="Shield"
+            options="{shields}"
+            defaultOption="None"
+            position="{{ top: '45%', left: '52%' }}"
+            on:armorSelected="{handleArmorSelected}"
+    />
 </div>
 
 
