@@ -5,7 +5,7 @@
 
     let weapon = {
         name: '',
-        pow: '',
+        power: '',
         add: '',
         ws: '',
         va: '',
@@ -15,7 +15,7 @@
     };
 
     const numberFields = [
-        { field: 'pow', label: 'Power', type: 'number' },
+        { field: 'power', label: 'Power', type: 'number' },
         { field: 'add', label: 'Add', type: 'number' },
         { field: 'ws', label: 'Weapon Speed', type: 'number' },
         { field: 'va', label: 'Versus Armor', type: 'number' },
@@ -38,7 +38,7 @@
             type: 'melee',
             weapon: {
                 weapon: weapon.name,
-                pow: weapon.pow,
+                power: weapon.power,
                 add: weapon.add,
                 ws: weapon.ws,
                 va: weapon.va,

@@ -1,47 +1,73 @@
 <script>
-    export let label = '';
-    export let type = 'text';
-    export let bindValue;
-    export let placeholder = '';
-    export let required = false;
-    export let items = [];
-    export let fieldClass = '';
-    export let disabled = false; // Add disabled property
+    import { characterStore } from "$lib/characterStore.js";
 
+    let character;
 
+    $: character = $characterStore;
+
+    function handleChange(e, key) {
+        characterStore.update((character) => {
+            character[key] = e.target.value;
+            return character;
+        });
+    }
+
+    const numberFields = [
+        { label: 'Fate', type: 'number', key: 'fate' },
+        { label: 'Persona', type: 'number', key: 'persona' },
+        { label: 'Deed', type: 'number', key: 'deed' },
+    ];
+
+    const stockItems = ['man', 'orc', 'troll', 'wolf', 'dwarf', 'elf', 'rat'];
 </script>
 
-<div class="field">
-    <div class="control">
-        {#if type === 'select'}
-            <select
-                    class="input control {fieldClass}"
-                    bind:value="{bindValue}"
-                    required="{required}"
-                    disabled="{disabled}"
-            >
-            {#each items as item}
-                <option value="{item}">{item}</option>
-            {/each}
-            </select>
-        {:else if type === 'number'}
-            <input
-                    class="input control {fieldClass}"
-                    type="number"
-                    bind:value="{bindValue}"
-                    placeholder="{placeholder}"
-                    required="{required}"
-                    disabled="{disabled}"
-            />
-        {:else}
-            <input
-                    class="input {fieldClass}"
-                    type="text"
-                    bind:value="{bindValue}"
-                    placeholder="{placeholder}"
-                    required="{required}"
-                    disabled="{disabled}"
-            />
-        {/if}
+<div class="columns is-multiline">
+    <div class="column is-half">
+        <div class="field">
+            <label class="label">Name</label>
+            <div class="control">
+                <input
+                        class="input"
+                        type="text"
+                        bind:value="{character.name}"
+                        placeholder="Name"
+                        on:input="{(e) => handleChange(e, 'name')}"
+                />
+            </div>
+        </div>
     </div>
+
+    <div class="column is-half">
+        <div class="field">
+            <label class="label">Stock</label>
+            <div class="control">
+                <select
+                        class="input control"
+                        bind:value="{character.stock}"
+                        on:input="{(e) => handleChange(e, 'stock')}"
+                >
+                    {#each stockItems as item}
+                        <option value="{item}">{item}</option>
+                    {/each}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    {#each numberFields as field}
+        <div class="column is-half">
+            <div class="field">
+                <label class="label">{field.label}</label>
+                <div class="control">
+                    <input
+                            class="input control"
+                            type="number"
+                            bind:value="{character[field.key]}"
+                            placeholder="{field.label}"
+                            on:input="{(e) => handleChange(e, field.key)}"
+                    />
+                </div>
+            </div>
+        </div>
+    {/each}
 </div>

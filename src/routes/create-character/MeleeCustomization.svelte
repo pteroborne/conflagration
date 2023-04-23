@@ -44,7 +44,7 @@
 
         let customizedWeapon = {...weapon.weapon};
         customizedWeapon.weapon = `${customizedWeapon.weapon} with ${selectedMiscGear.weapon}`;
-        customizedWeapon.pow += selectedMiscGear.power;
+        customizedWeapon.power += selectedMiscGear.power;
         customizedWeapon.add += selectedMiscGear.add;
         customizedWeapon.ws += selectedMiscGear.ws;
         customizedWeapon.va += selectedMiscGear.va;

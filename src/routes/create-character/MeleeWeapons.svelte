@@ -15,8 +15,9 @@
         const detail = {
             type: 'melee',
             weapon: {
+                id: selectedWeapon.id,
                 weapon: selectedWeapon.weapon,
-                pow: selectedWeapon.pow,
+                power: selectedWeapon.power,
                 add: selectedWeapon.add,
                 ws: selectedWeapon.ws,
                 va: selectedWeapon.va,

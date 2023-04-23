@@ -1,5 +1,6 @@
 <script>
     import {supabase} from '$lib/supabaseClient.js';
+    
 
     async function signInWithDiscord() {
         const {data, error} = await supabase.auth.signInWithOAuth({

@@ -15,10 +15,11 @@
         const detail = {
             type: 'thrown',
             weapon: {
+                id: selectedWeapon.id,
                 weapon: selectedWeapon.weapon,
-                i: selectedWeapon.I,
-                m: selectedWeapon.M,
-                s: selectedWeapon.S,
+                dof_i: selectedWeapon.dof_i,
+                dof_m: selectedWeapon.dof_m,
+                dof_s: selectedWeapon.dof_s,
                 va: selectedWeapon.va,
                 power: selectedWeapon.power
             },

@@ -5,9 +5,9 @@
 
     let weapon = {
         name: '',
-        i: '',
-        m: '',
-        s: '',
+        dof_i: '',
+        dof_m: '',
+        dof_s: '',
         power: '',
     };
 
@@ -21,9 +21,9 @@
     }
 
     const textFields = [
-        {field: 'i', label: 'I', type: 'text'},
-        {field: 'm', label: 'M', type: 'text'},
-        {field: 's', label: 'S', type: 'text'},
+        {field: 'dof_i', label: 'I', type: 'text'},
+        {field: 'dof_m', label: 'M', type: 'text'},
+        {field: 'dof_s', label: 'S', type: 'text'},
     ];
 
     function closeModal() {
@@ -36,9 +36,9 @@
             type: 'thrown',
             weapon: {
                 weapon: weapon.name,
-                i: weapon.i,
-                m: weapon.m,
-                s: weapon.s,
+                dof_i: weapon.dof_i,
+                dof_m: weapon.dof_m,
+                dof_s: weapon.dof_s,
                 va: weapon.va,
                 power: weapon.power
             },

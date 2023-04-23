@@ -5,13 +5,13 @@
 
     let weapon = {
         name: '',
-        I: '',
-        M: '',
-        S: '',
-        DOF_I: '',
-        DOF_M: '',
-        DOF_S: '',
-        VA: '',
+        i: '',
+        m: '',
+        s: '',
+        dof_i: '',
+        dof_m: '',
+        dof_s: '',
+        va: '',
         actions: '',
         action_count: '',
     };
@@ -27,12 +27,12 @@
     }
 
     const textFields = [
-        {field: 'I', label: 'I', type: 'text'},
-        {field: 'M', label: 'M', type: 'text'},
-        {field: 'S', label: 'S', type: 'text'},
-        {field: 'DOF_I', label: 'DOF I', type: 'text'},
-        {field: 'DOF_M', label: 'DOF M', type: 'text'},
-        {field: 'DOF_S', label: 'DOF S', type: 'text'},
+        {field: 'i', label: 'I', type: 'text'},
+        {field: 'm', label: 'M', type: 'text'},
+        {field: 's', label: 'S', type: 'text'},
+        {field: 'dof_i', label: 'DoF I', type: 'text'},
+        {field: 'dof_m', label: 'DoF M', type: 'text'},
+        {field: 'dof_s', label: 'DoF S', type: 'text'},
     ];
 
     const selectFields = [
@@ -49,13 +49,13 @@
             type: 'ranged',
             weapon: {
                 weapon: weapon.name,
-                I: weapon.I,
-                M: weapon.M,
-                S: weapon.S,
-                DOF_I: weapon.DOF_I,
-                DOF_M: weapon.DOF_M,
-                DOF_S: weapon.DOF_S,
-                VA: weapon.VA,
+                i: weapon.i,
+                m: weapon.m,
+                s: weapon.s,
+                dof_i: weapon.dof_i,
+                dof_m: weapon.dof_m,
+                dof_s: weapon.dof_s,
+                va: weapon.va,
                 actions: weapon.actions,
                 action_count: weapon.action_count,
             },

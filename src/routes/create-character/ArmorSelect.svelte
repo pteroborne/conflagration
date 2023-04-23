@@ -15,22 +15,23 @@
         selectedOption = event.target.value;
         halfArmorCheckboxDisabled = selectedOption === defaultOption;
         const armor = options.find((option) => option.id === parseInt(selectedOption));
-        console.log('armor:', armor);
         const halfArmorCheckbox = document.getElementById(`${label}-half-armor`);
         const isHalfArmor = halfArmorCheckbox ? halfArmorCheckbox.checked : false;
 
         const armorData = armor ? { ...armor, isHalfArmor } : null;
-        console.log('armorData:', armorData);
         dispatch('armorSelected', { label, armorData });
     }
 
 
 
     function handleHalfArmorChange(event) {
-        const armor = options.find((option) => option.id === selectedOption);
-        const armorData = { ...armor, isHalfArmor: event.target.checked };
-        dispatch('armorSelected', { label, armorData });
+        const armor = options.find((option) => option.id === parseInt(selectedOption));
+        if (armor) {
+            const armorData = { ...armor, isHalfArmor: event.target.checked };
+            dispatch('armorSelected', { label, armorData });
+        }
     }
+
 </script>
 
 <div class="armor-select" style="position: absolute; top: {position.top}; left: {position.left};">

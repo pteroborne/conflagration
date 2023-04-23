@@ -1,7 +1,7 @@
 import { writable } from 'svelte/store';
 
 const initialCharacter = {
-    name: '',
+    name: 'Unnamed',
     stock: 'man',
     fate: 0,
     persona: 0,
@@ -31,17 +31,17 @@ const initialCharacter = {
     emotional_attribute_shade: 'B',
     emotional_attribute_exponent: 0,
     su_shade: 'B',
-    su_exponent: 0,
+    su_exponent: 3,
     li_shade: 'B',
-    li_exponent: 0,
+    li_exponent: 4,
     mi_shade: 'B',
-    mi_exponent: 0,
+    mi_exponent: 5,
     se_shade: 'B',
-    se_exponent: 0,
+    se_exponent: 6,
     tr_shade: 'B',
-    tr_exponent: 0,
+    tr_exponent: 7,
     mo_shade: 'B',
-    mo_exponent: 0,
+    mo_exponent: 8,
 };
 
 export const characterStore = writable(initialCharacter);
@@ -54,13 +54,3 @@ export const chosenWeaponsStore = writable([]);
 
 export const characterArmor = writable([]);
 
-// chosenWeaponsStore.subscribe(weapons => {
-//     console.log('Chosen Weapons:', weapons);
-// });
-//
-// characterArrowheads.subscribe(weapons => {
-//     console.log('Chosen arrowheads:', weapons);
-// });
-characterArmor.subscribe(weapons => {
-    console.log('Chosen Weapons:', weapons);
-});

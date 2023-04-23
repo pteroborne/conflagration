@@ -14,6 +14,7 @@
         const detail = {
             type: 'found',
             weapon: {
+                id: selectedWeapon.id,
                 weapon: selectedWeapon.weapon,
                 power: selectedWeapon.power,
                 ws: selectedWeapon.ws,

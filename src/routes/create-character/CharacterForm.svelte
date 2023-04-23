@@ -10,13 +10,6 @@
 
     const dispatch = createEventDispatcher();
 
-    const basicInfoFields = [
-        {label: 'Name', type: 'text', key: 'name'},
-        {label: 'Stock', type: 'select', key: 'stock', items: ['man', 'orc', 'troll', 'wolf', 'dwarf', 'elf', 'rat']},
-        {label: 'Fate', type: 'number', key: 'fate'},
-        {label: 'Persona', type: 'number', key: 'persona'},
-        {label: 'Deed', type: 'number', key: 'deed'},
-    ];
 
     const statFields = [
         {label: 'Will', key: 'will', shadeKey: 'will_shade', exponentKey: 'will_exponent'},
@@ -65,11 +58,6 @@
     ];
 
 
-    function handleSubmit() {
-        // Submit the character data to the parent component
-        dispatch('submit', $characterStore);
-    }
-
     // Function to handle toggling of auto-calculation for attributes
 
     function calculateTolerances() {
@@ -110,11 +98,13 @@
         $characterStore;
         enforceRules;
         updateDependentValues();
-        console.log('reactive')
     }
 
 
     let activeTab = 'basic';
+
+    $: toggleClass = enforceRules ? 'toggle-checked' : '';
+
 </script>
 
 <form class="box">
@@ -129,7 +119,7 @@
             <li class="{activeTab === 'attributes' ? 'is-active' : ''}" on:click={() => (activeTab = 'attributes')}><a>Attributes</a>
             </li>
             <li class="{activeTab === 'physicalTolerances' ? 'is-active' : ''}"
-                on:click={() => (activeTab = 'physicalTolerances')}><a>Physical Tolerances</a></li>
+                on:click={() => (activeTab = 'physicalTolerances')}><a>PTGS</a></li>
             <li class="{activeTab === 'skills' ? 'is-active' : ''}"
                 on:click={() => (activeTab = 'skills')}><a>Skills</a></li>
             <li class="{activeTab === 'weapons' ? 'is-active' : ''}"
@@ -145,17 +135,7 @@
         <fieldset class="mb-4">
             <legend class="title is-4">Basic Info</legend>
             <div class="columns is-multiline">
-                {#each basicInfoFields as field}
-                    <div class="column is-half">
-                        <CharacterFormField
-                                label="{field.label}"
-                                type="{field.type}"
-                                bind:value="{$characterStore[field.key]}"
-                                placeholder="{field.label}"
-                                items="{field.items}"
-                        />
-                    </div>
-                {/each}
+                <CharacterFormField/>
             </div>
         </fieldset>
     </div>
@@ -303,9 +283,10 @@
                 </label>
                 <div class="field-body">
                     <div class="field">
-                        <label for="enforceRules" class="toggle">
+                        <label class="toggle-wrapper">
                             <input id="enforceRules" class="toggle-checkbox" type="checkbox"
                                    bind:checked="{enforceRules}"/>
+                            <span class="toggle {toggleClass}"></span>
                         </label>
                     </div>
                 </div>
@@ -330,38 +311,5 @@
         display: block;
     }
 
-    .toggle {
-        display: inline-block;
-        position: relative;
-        width: 48px;
-        height: 24px;
-        border-radius: 24px;
-        background-color: #d5d5d5;
-        cursor: pointer;
-        transition: background-color 0.3s;
-    }
-
-    .toggle-checkbox {
-        display: none;
-    }
-
-    .toggle-checkbox:checked + .toggle {
-        background-color: #00d1b2;
-    }
-
-    .toggle::before {
-        content: "";
-        position: absolute;
-        top: 2px;
-        left: 2px;
-        width: 20px;
-        height: 20px;
-        border-radius: 20px;
-        background-color: white;
-        transition: left 0.3s;
-    }
-
-    .toggle-checkbox:checked + .toggle::before {
-        left: 26px;
-    }
 </style>
+

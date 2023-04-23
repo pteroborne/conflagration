@@ -1,6 +1,11 @@
 <script>
     import Login from '$lib/login.svelte';
+    import {user} from '$lib/userStore.js';
 </script>
 
-<h1>Login</h1>
-<Login />
+{#if $user}
+    <p>Welcome, {$user.email}!</p>
+{:else}
+    <h1>Login</h1>
+    <Login/>
+{/if}

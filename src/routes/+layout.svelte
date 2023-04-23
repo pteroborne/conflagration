@@ -1,34 +1,45 @@
 <script>
-    import { onMount } from 'svelte';
-    import { supabase } from '$lib/supabaseClient.js';
-    import { goto } from '$app/navigation';
+    import {onMount} from 'svelte';
+    import {supabase} from '$lib/supabaseClient.js';
     import '../app.css'
+    import { user } from '$lib/userStore.js';
+
+    export async function load({ page, session }) {
+        const currentUser = await supabase.auth.user;
+        if (currentUser) {
+            user.set(currentUser);
+        }
+        return { props: {} };
+    }
 
     onMount(() => {
-        const unsubscribe = supabase.auth.onAuthStateChange((event, session) => {
-            if (event === 'SIGNED_IN') {
-                console.log('User signed in:', session.user);
-                goto('/dashboard');
-            } else if (event === 'SIGNED_OUT') {
-                console.log('User signed out');
+        supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+                const currentUser = session ? session.user : null;
+                user.set(currentUser);
             }
         });
-
-        return () => {
-            unsubscribe();
-        };
     });
+
+    async function signout() {
+        const {error} = await supabase.auth.signOut();
+    }
 </script>
 
-<nav class="navbar" role="navigation" aria-label="main navigation">
-    <div class="navbar-brand">
-        <a class="navbar-item" href="/">
-            Conflagration
-        </a>
-    </div>
-
-    <div id="navbarBasic" class="navbar-menu">
-        <div class="navbar-start">
+<div id="navbarBasic" class="navbar-menu">
+    <div class="navbar-start">
+        {#if $user}
+            <a class="navbar-item" href="/dashboard">
+                Dashboard
+            </a>
+            <a class="navbar-item" href="/create-character">
+                Create a Character
+            </a>
+            <a class="navbar-item" href="/lobby">Lobby</a>
+            <a class="navbar-item" on:click="{signout}">
+                Sign out
+            </a>
+        {:else}
             <a class="navbar-item" href="/">
                 Home
             </a>
@@ -38,12 +49,9 @@
             <a class="navbar-item" href="/settings">
                 Settings
             </a>
-            <a class="navbar-item" href="/dashboard">
-                Dashboard
-            </a>
-        </div>
+        {/if}
     </div>
-</nav>
+</div>
 
 <section class="section">
     <div class="container">
