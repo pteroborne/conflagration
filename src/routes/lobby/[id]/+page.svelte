@@ -1,29 +1,206 @@
 <!-- src/routes/lobby/[id]/+page.svelte -->
 <script>
-    import { onMount } from 'svelte';
+    import {onMount} from 'svelte';
+    import {supabase} from '$lib/supabaseClient.js';
     import {user} from '$lib/userStore';
+    import Select from "svelte-select";
+    import CharacterPreview from '$lib/character-preview/CharacterPreview.svelte';
+    import {goto} from '$app/navigation';
+    import {updateContext} from '$lib/contextSetup.js';
+    import {writable} from 'svelte/store';
 
     export let data;
     let lobby;
+    let players = [];
+    let selectedSystem = '';
+    let selectedCharacter = writable(null);
+    let characters = [];
+
+    async function init() {
+        if (!data) return;
+
+        lobby = data.lobby;
+        await fetchPlayers();
+    }
 
     onMount(() => {
-        if (data) {
-            lobby = data.lobby;
-        }
+        init();
     });
 
-    console.log(data);
-    let currentUser = $user;
+
+    async function fetchPlayers() {
+        if (!$user || !lobby) return;
+
+        const {data: playersData, error: playersError} = await supabase
+            .from('lobby_members')
+            .select(`
+                user_id,
+                user_name,
+                character_id (
+                    id,
+                    name
+                )
+            `)
+            .eq('lobby_id', lobby.id);
+
+        if (playersError) {
+            console.error('Error fetching players:', playersError);
+        } else {
+            players = playersData;
+        }
+    }
+
+    async function startGame() {
+        if ($user.id !== lobby.creator_id) {
+            console.error('Error: Only the host can start the game');
+            return;
+        }
+
+        // Implement game starting logic here
+        console.log('Starting the game...');
+    }
+
+    async function selectSystem(system) {
+        if ($user.id !== lobby.creator_id) {
+            console.error('Error: Only the host can select the system');
+            return;
+        }
+
+        lobby.game_system = system;
+    }
+
+    // stuff for previewing the character
+    function updateSelectedCharacter(char) {
+        selectedCharacter.set(char);
+        updateContext({
+            character: char,
+            characterSkills: char.character_skills,
+            characterArrowheads: char.character_arrowheads,
+            chosenWeapons: char.character_weapons,
+            characterArmor: char.character_armor,
+        });
+    }
+
+    function onCharacterChange(character) {
+        updateSelectedCharacter(character);
+    }
+
+    async function updateLobbyMember(characterId) {
+        if (!$user || !lobby) return;
+
+        const {error} = await supabase
+            .from('lobby_members')
+            .update({character_id: characterId})
+            .eq('user_id', $user.id)
+            .eq('lobby_id', lobby.id);
+
+        if (error) {
+            console.error('Error updating lobby member:', error);
+        }
+    }
+
+    $: if ($selectedCharacter && $user) {
+        updateLobbyMember($selectedCharacter.id);
+        fetchPlayers();
+    }
+
+    $: if ($user) {
+
+        (async () => {
+            const {data: charactersData, error: charactersError} = await supabase
+                .from('characters')
+                .select(`
+                    *,
+                    character_skills(*),
+                    character_arrowheads(*),
+                    character_weapons(*),
+                    character_armor(*)
+                `)
+                .eq('user_id', $user.id);
+
+            if (charactersError) {
+                console.error('Error fetching characters:', charactersError);
+            } else {
+                characters = charactersData;
+            }
+        })();
+    }
+
 </script>
+
 
 <div class="section">
     <div class="container">
         {#if lobby}
-            <h1 class="title">Lobby: {lobby.code}</h1>
-            <p>System: {lobby.game_system}</p>
-            <p>Status: {lobby.status}</p>
+            <div class="columns">
+                <div class="column is-one-third">
+                    <div class="box">
+                        <h1 class="title">Lobby: {lobby.code}</h1>
+                        <p>System: {lobby.game_system}</p>
+                        <p>Status: {lobby.status}</p>
+                    </div>
+
+
+                    {#if $user.id === lobby.creator_id}
+                        <div class="select-system box">
+                            <h2 class="title is-4">Select a System</h2>
+                            <label class="label">
+                                <input type="radio" value="Fight!" bind:group={selectedSystem}
+                                       on:change={() => selectSystem('Fight!')}/> Fight!
+                            </label>
+                            <label class="label">
+                                <input type="radio" value="Range and Cover" bind:group={selectedSystem}
+                                       on:change={() => selectSystem('Range and Cover')}/> Range and Cover
+                            </label>
+                            <label class="label">
+                                <input type="radio" value="Duel of Wits" bind:group={selectedSystem}
+                                       on:change={() => selectSystem('Duel of Wits')}/> Duel of Wits
+                            </label>
+                        </div>
+                    {/if}
+
+
+                    <div class="box">
+                        <h2 class="title is-4">Players:</h2>
+                        <ul>
+                            {#each players as player}
+                                <li>
+                                    {player.user_name}
+                                    - {player.character_id ? player.character_id.name : 'No character selected'}
+                                </li>
+                            {/each}
+                        </ul>
+                    </div>
+
+
+                    {#if $user.id === lobby.creator_id}
+                        <button class="button is-primary" on:click={startGame}>Start Game</button>
+                    {/if}
+                </div>
+                <div class="column is-two-thirds">
+                    <div class="select-character">
+                        {#if characters.length > 0}
+                            <div class="box">
+                                <label class="label">Select a character:</label>
+                                <Select
+                                        items={characters}
+                                        label="name"
+                                        placeholder="Select a character"
+                                        on:change={(e) => onCharacterChange(e.detail)}
+                                />
+                            </div>
+                            {#if selectedCharacter}
+                                <CharacterPreview/>
+                            {/if}
+                        {:else}
+                            <p>No characters available.</p>
+                        {/if}
+                    </div>
+                </div>
+            </div>
         {:else}
             <p>Loading lobby information...</p>
         {/if}
     </div>
 </div>
+
