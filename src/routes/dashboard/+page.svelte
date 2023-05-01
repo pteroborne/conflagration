@@ -1,3 +1,4 @@
+<!--routes/dashboard/+page.svelte-->
 <script>
     import { onMount } from 'svelte';
     import { supabase } from '$lib/supabaseClient.js';

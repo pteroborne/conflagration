@@ -1,3 +1,4 @@
+<!--CharacterFormShadedField.svelte-->
 <script>
     export let label = "";
     export let shadeKey = "";

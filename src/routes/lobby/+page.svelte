@@ -102,24 +102,40 @@
         if (lobbyError) {
             console.error('Error fetching lobby:', lobbyError);
         } else {
-            const { data: memberData, error: memberError } = await supabase
+            // Check if the user is already a member of the lobby
+            const { data: existingMemberData, error: existingMemberError } = await supabase
                 .from('lobby_members')
-                .insert([
-                    {
-                        lobby_id: lobbyData.id,
-                        user_id: currentUser.id,
-                        user_name: playerName, // Use entered player name
-                    },
-                ])
-                .single();
+                .select('id')
+                .eq('lobby_id', lobbyData.id)
+                .eq('user_id', currentUser.id);
 
-            if (memberError) {
-                console.error('Error joining lobby:', memberError);
-            } else {
+            if (existingMemberError) {
+                console.error('Error checking existing lobby member:', existingMemberError);
+            } else if (existingMemberData.length > 0) {
+                console.log('User is already a member of this lobby');
                 await goto(`/lobby/${lobbyData.id}`);
+            } else {
+                const { data: memberData, error: memberError } = await supabase
+                    .from('lobby_members')
+                    .insert([
+                        {
+                            lobby_id: lobbyData.id,
+                            user_id: currentUser.id,
+                            user_name: playerName, // Use entered player name
+                        },
+                    ])
+                    .single();
+
+                if (memberError) {
+                    console.error('Error joining lobby:', memberError);
+                } else {
+                    await goto(`/lobby/${lobbyData.id}`);
+                }
             }
         }
     }
+
+
 
 
 </script>

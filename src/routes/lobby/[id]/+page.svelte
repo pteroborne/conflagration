@@ -8,47 +8,26 @@
     import {goto} from '$app/navigation';
     import {updateContext} from '$lib/contextSetup.js';
     import {writable} from 'svelte/store';
+    import { lobbyMembers, fetchLobbyMembers } from "$lib/lobbyStore";
 
     export let data;
     let lobby;
-    let players = [];
     let selectedSystem = '';
     let selectedCharacter = writable(null);
     let characters = [];
+
 
     async function init() {
         if (!data) return;
 
         lobby = data.lobby;
-        await fetchPlayers();
+        await fetchLobbyMembers(lobby.id);
     }
 
     onMount(() => {
         init();
     });
 
-
-    async function fetchPlayers() {
-        if (!$user || !lobby) return;
-
-        const {data: playersData, error: playersError} = await supabase
-            .from('lobby_members')
-            .select(`
-                user_id,
-                user_name,
-                character_id (
-                    id,
-                    name
-                )
-            `)
-            .eq('lobby_id', lobby.id);
-
-        if (playersError) {
-            console.error('Error fetching players:', playersError);
-        } else {
-            players = playersData;
-        }
-    }
 
     async function startGame() {
         if ($user.id !== lobby.creator_id) {
@@ -58,7 +37,9 @@
 
         // Implement game starting logic here
         console.log('Starting the game...');
+        await goto(`/conflict/${lobby.id}`, { state: { id: lobby.id } });
     }
+
 
     async function selectSystem(system) {
         if ($user.id !== lobby.creator_id) {
@@ -101,7 +82,6 @@
 
     $: if ($selectedCharacter && $user) {
         updateLobbyMember($selectedCharacter.id);
-        fetchPlayers();
     }
 
     $: if ($user) {
@@ -163,7 +143,7 @@
                     <div class="box">
                         <h2 class="title is-4">Players:</h2>
                         <ul>
-                            {#each players as player}
+                            {#each $lobbyMembers as player}
                                 <li>
                                     {player.user_name}
                                     - {player.character_id ? player.character_id.name : 'No character selected'}

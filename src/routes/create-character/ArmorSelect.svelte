@@ -1,3 +1,4 @@
+<!--/routes/create-character/ArmorSelect.svelte-->
 <script>
     import { createEventDispatcher } from 'svelte';
 

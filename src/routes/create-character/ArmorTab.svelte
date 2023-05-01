@@ -1,3 +1,4 @@
+<!--/create-character/ArmorTab.svelte-->
 <script>
     import {onMount} from "svelte";
     import {supabase} from "$lib/supabaseClient.js";

@@ -1,3 +1,4 @@
+<!--routes/create-character/+page.svelte-->
 <script>
     import {onMount, setContext} from 'svelte';
     import CharacterForm from './CharacterForm.svelte';

@@ -1,3 +1,4 @@
+<!--CharacterFormField.svelte-->
 <script>
     import { characterStore } from "$lib/characterStore.js";
 

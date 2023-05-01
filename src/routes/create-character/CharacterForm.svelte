@@ -1,3 +1,4 @@
+<!--CharacterForm.svelte-->
 <script>
     import {createEventDispatcher} from 'svelte';
     import CharacterFormField from './CharacterFormField.svelte';

@@ -1,3 +1,4 @@
+// lib/characterStore.js
 import { writable } from 'svelte/store';
 
 const initialCharacter = {
