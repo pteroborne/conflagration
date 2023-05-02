@@ -3,6 +3,7 @@
     import {supabase} from '$lib/supabaseClient.js';
     import '../app.css'
     import { user } from '$lib/userStore.js';
+    import 'bulma/css/bulma.css'
 
     export async function load({ page, session }) {
         const currentUser = await supabase.auth.user;
