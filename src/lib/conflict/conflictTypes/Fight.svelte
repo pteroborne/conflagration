@@ -9,6 +9,7 @@
 </script>
 
 <main>
+    yo, is this being rendered?
 <!--    <Engage {opponents} />-->
     <!-- Display other fight-related information, inputs, and components -->
 </main>

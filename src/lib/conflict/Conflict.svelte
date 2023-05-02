@@ -1,120 +1,193 @@
 <!-- src/lib/conflict/Conflict.svelte-->
 <script>
-    import {onMount} from 'svelte';
+    import {onMount, onDestroy} from 'svelte';
     import {supabase} from '$lib/supabaseClient';
-    import Fight from './conflictTypes/Fight.svelte';
-    import RangeAndCover from './conflictTypes/RangeAndCover.svelte';
-    import DuelOfWits from './conflictTypes/DuelOfWits.svelte';
-    import {lobbyMembers, fetchLobbyMembers} from "$lib/lobbyStore";
-    import {dndzone} from 'svelte-dnd-action';
+    import {
+        lobbyMembers,
+        fetchLobbyMembers,
+        subscribeLobbyMembers,
+        unsubscribeLobbyMembers,
+        setReadyStatus, resetReadyStatus
+    } from "$lib/lobbyStore";
+    import {pairOpponents, isEngagementsReady, engagementsStore} from './conflictService.js';
+    import CharacterList from "$lib/conflict/CharacterList.svelte";
+    import {user} from "$lib/userStore.js";
+    import {goto} from "$app/navigation";
 
-
-    onMount(async () => {
-        await fetchLobbyMembers(gameData.id);
-    });
-
-
-    async function pairOpponents() {
-        // ...
-        // Add a new fight entry in the fights table
-        const {data: fightData, error: fightError} = await supabase
-            .from('fights')
-            .insert([{lobby_id: gameData.id}]);
-
-        if (fightError) {
-            console.error('Error creating fight:', fightError);
-            return;
-        }
-
-        const fightId = fightData[0].id;
-
-        // Add the pair to the engagements table in Supabase
-        for (let i = 0; i < lobbyMembers.length - 1; i += 2) {
-            const player1 = lobbyMembers[i];
-            const player2 = lobbyMembers[i + 1];
-
-            supabase
-                .from('engagements')
-                .insert([
-                    {
-                        fight_id: fightId,
-                        player1_character_id: player1.character_id,
-                        player2_character_id: player2.character_id,
-                    },
-                ])
-                .then(({data, error}) => {
-                    if (error) throw error;
-                    console.log('Engagement created:', data);
-                })
-                .catch((error) => {
-                    console.error('Error creating engagement:', error);
-                });
-        }
-
-        isEngagementsReady = true;
+    async function handlePairOpponents() {
+        const newEngagements = await pairOpponents(gameData.id, $lobbyMembers);
+        engagementsStore.set(newEngagements);
     }
 
 
-    let isEngagementsReady = false;
-
-
-    export let gameData;
     let engagements;
+    export let gameData;
+
+    let characters = [];
+
+
+    async function fetchCharacter(character_id) {
+        const {data, error} = await supabase
+            .from('characters')
+            .select('*')
+            .eq('id', character_id)
+            .single()
+            .select();
+
+        if (error) {
+            console.error('Error fetching character:', error);
+            return null;
+        }
+
+        return data;
+    }
+
+
+    let subscription;
+
+    onMount(async () => {
+        await fetchLobbyMembers(gameData.id);
+        await resetReadyStatus(gameData.id);
+        await handlePairOpponents();
+        // await fetchEngagements(gameData.id);
+
+
+        subscription = await subscribeLobbyMembers(gameData.id);
+
+    });
+
+
+    onDestroy(() => {
+        unsubscribeLobbyMembers(subscription);
+    });
+
+    $: hasCharactersSelected = $lobbyMembers?.some(member => member.character_id);
+
+
+    $: pairs = sliceIntoChunks(characters, 2);
+
+
+    $: if ($lobbyMembers && $lobbyMembers.length) {
+        const fetchCharacters = async () => {
+            const characterPromises = $lobbyMembers.map(async (member) => {
+                if (member.character_id) {
+                    const characterData = await fetchCharacter(member.character_id);
+                    return {...characterData, user_id: member.user_id, user_name: member.user_name};
+                }
+                return {user_id: member.user_id, user_name: member.user_name};
+            });
+
+            characters = await Promise.all(characterPromises);
+        };
+
+        fetchCharacters();
+
+    }
+
+
+    function sliceIntoChunks(arr, chunkSize) {
+        const res = [];
+        for (let i = 0; i < arr.length; i += chunkSize) {
+            const chunk = arr.slice(i, i + chunkSize);
+            res.push(chunk);
+        }
+        return res;
+    }
+
+    $: pairs = sliceIntoChunks(characters, 2);
+
+
+    async function handleReady() {
+        // Set the ready status for the current user
+        await setReadyStatus(gameData.id, $user.id);
+    }
+
+    $: if ($lobbyMembers && $lobbyMembers.every((member) => member.ready)) {
+        console.log('All users are ready');
+        console.log($engagementsStore, userEngagement)
+        if (!userEngagement) {
+            console.log('no engagement')
+        } else {
+            goto(`./\${gameId}/fight/` + userEngagement.id, { userEngagement, userCharacterId });
+
+        }
+    }
+
+    $: userCharacterId = characters.find(character => character.user_id === $user.id)?.id;
+
+    $: userEngagement = $engagementsStore?.find(
+        engagement =>
+            engagement.player1_character_id === userCharacterId || engagement.player2_character_id === userCharacterId
+    );
+
+
+    // Add this function in your Conflict.svelte script
+    async function fetchEngagements(fightId) {
+        const { data, error } = await supabase
+            .from('engagements')
+            .select('*')
+            .eq('fight_id', fightId);
+
+        if (error) {
+            console.error('Error fetching engagements:', error);
+            return;
+        }
+
+        engagementsStore.set(data);
+    }
+
+
+
 </script>
 
 
 <section class="section">
     <h2 class="title">Lobby Members:</h2>
     <ul>
-        {#each $lobbyMembers as member}
-            <li>
-                {member.user_name} - {member.character_id ? member.character_id.name : 'No character selected'}
-                (Character ID: {member.character_id ? member.character_id.id : 'N/A'})
-            </li>
-        {/each}
+        {#if characters.length > 0}
+            {#each characters as character (character.user_id)}
+                <li>
+                    {character.user_name} - {character.name ? character.name : 'No character selected'}
+                    (Character ID: {character.id ? character.id : 'N/A'})
+                    {#if $lobbyMembers.find(member => member.user_id === character.user_id).ready}
+                        &#x2713;
+                    {/if}
+                </li>
+            {/each}
+        {/if}
     </ul>
 
-    <button class="button is-primary" on:click={pairOpponents}>Pair Opponents</button>
 </section>
 
-<!-- Add this section after the Pair Opponents button -->
+
 <section class="section">
-    <h2 class="title">Choose characters for conflict</h2>
-    <div class="columns is-multiline">
-        {#each $lobbyMembers as member}
-            {#if member.character_id}
-                <div
-                        class="column is-one-quarter"
-                        use:dndzone="{{items: [{...member, id: member.character_id.id}], type: 'character'}}"
-                >
-                    <div class="card">
-                        <div class="card-content">
-                            <p class="title">{member.character_id.name}</p>
-                        </div>
-                    </div>
+    <h3 class="title is-4">Engaged Opponents</h3>
+    <div class="columns">
+        {#if pairs.length > 0 && Array.isArray($engagementsStore)}
+            {#each pairs as pair, index}
+                <div class="column is-one-third">
+                    {#if $engagementsStore[index]}
+                        <CharacterList items={pair} engagementId={$engagementsStore[index].id}
+                                       on:engagementUpdated="{(e) => fetchEngagements(e.detail.fightId)}"/>
+
+                    {/if}
+
+                    {#if pair.some((character) => character.user_id === $user.id)}
+                        <button on:click="{handleReady}" class="button is-primary">
+                            Ready
+                        </button>
+                    {/if}
                 </div>
-            {/if}
-        {/each}
-    </div>
-    {#if $lobbyMembers.some(member => member.character_id)}
-        <div class="notification is-primary">
-            {#each $lobbyMembers as member}
-                {#if member.character_id}
-                    {member.character_id.name}{#if $lobbyMembers.indexOf(member) < $lobbyMembers.length - 1}, {/if}
-                {/if}
             {/each}
-            have been chosen for conflict
-        </div>
-    {/if}
+        {/if}
+    </div>
 </section>
 
 
-
-
-{#if isEngagementsReady}
+{#if Array.isArray($engagementsStore)}
     <section class="section">
         <h2 class="title">Engagements:</h2>
-        {#each $engagements as engagement}
+        {#each $engagementsStore as engagement}
             <div class="box">
                 <h3 class="subtitle">Engagement ID: {engagement.id}</h3>
                 <p>
@@ -126,16 +199,4 @@
     </section>
 {/if}
 
-{#if gameData.game_system === 'Fight!' && isEngagementsReady}
-    <section class="section">
-        <Fight {gameData}/>
-    </section>
-{:else if gameData.game_system === 'Range and Cover'}
-    <section class="section">
-        <RangeAndCover {gameData}/>
-    </section>
-{:else if gameData.game_system === 'Duel of Wits'}
-    <section class="section">
-        <DuelOfWits {gameData}/>
-    </section>
-{/if}
+

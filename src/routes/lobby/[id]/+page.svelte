@@ -1,6 +1,6 @@
 <!-- src/routes/lobby/[id]/+page.svelte -->
 <script>
-    import {onMount} from 'svelte';
+    import {onMount, onDestroy} from 'svelte';
     import {supabase} from '$lib/supabaseClient.js';
     import {user} from '$lib/userStore';
     import Select from "svelte-select";
@@ -8,7 +8,15 @@
     import {goto} from '$app/navigation';
     import {updateContext} from '$lib/contextSetup.js';
     import {writable} from 'svelte/store';
-    import { lobbyMembers, fetchLobbyMembers } from "$lib/lobbyStore";
+    import {
+        lobbyMembers,
+        fetchLobbyMembers,
+        updateLobbyMember,
+        subscribeLobbyMembers,
+        unsubscribeLobbyMembers,
+        subscribeLobby,
+        unsubscribeLobby
+    } from "$lib/lobbyStore";
 
     export let data;
     let lobby;
@@ -17,15 +25,63 @@
     let characters = [];
 
 
+    let lobbyMembersSubscription;
+    let lobbySubscription
+
     async function init() {
         if (!data) return;
 
         lobby = data.lobby;
         await fetchLobbyMembers(lobby.id);
+
+        lobbyMembersSubscription = await subscribeLobbyMembers(lobby.id);
+        lobbySubscription = await subscribeLobby(lobby.id, (newData) => {
+            lobby = newData;
+        });
     }
+
+    $: if ($user) {
+        (async () => {
+            const {data: charactersData, error: charactersError} = await supabase
+                .from('characters')
+                .select(`
+                *,
+                character_skills(*),
+                character_arrowheads(*),
+                character_weapons(*),
+                character_armor(*)
+            `)
+                .eq('user_id', $user.id);
+
+            if (charactersError) {
+                console.error('Error fetching characters:', charactersError);
+            } else {
+                characters = charactersData;
+
+                // Check if a character is already selected
+                const lobbyMember = $lobbyMembers.find((member) => member.user_id === $user.id);
+                if (lobbyMember) {
+                    const selectedChar = characters.find((char) => char.id === lobbyMember.character_id);
+                    if (selectedChar) {
+                        selectedCharacter.set(selectedChar);
+                    }
+                }
+            }
+        })();
+    }
+
 
     onMount(() => {
         init();
+    });
+
+    onDestroy(() => {
+        if (lobbyMembersSubscription) {
+            unsubscribeLobbyMembers(lobbyMembersSubscription);
+        }
+        if (lobbySubscription) { // Unsubscribe from the lobby table when the component is destroyed
+            unsubscribeLobby(lobbySubscription);
+        }
     });
 
 
@@ -37,7 +93,7 @@
 
         // Implement game starting logic here
         console.log('Starting the game...');
-        await goto(`/conflict/${lobby.id}`, { state: { id: lobby.id } });
+        await goto(`/conflict/${lobby.id}`, {state: {id: lobby.id}});
     }
 
 
@@ -66,45 +122,10 @@
         updateSelectedCharacter(character);
     }
 
-    async function updateLobbyMember(characterId) {
-        if (!$user || !lobby) return;
-
-        const {error} = await supabase
-            .from('lobby_members')
-            .update({character_id: characterId})
-            .eq('user_id', $user.id)
-            .eq('lobby_id', lobby.id);
-
-        if (error) {
-            console.error('Error updating lobby member:', error);
-        }
-    }
-
     $: if ($selectedCharacter && $user) {
-        updateLobbyMember($selectedCharacter.id);
+        updateLobbyMember(lobby.id, $user.id, $selectedCharacter.id);
     }
 
-    $: if ($user) {
-
-        (async () => {
-            const {data: charactersData, error: charactersError} = await supabase
-                .from('characters')
-                .select(`
-                    *,
-                    character_skills(*),
-                    character_arrowheads(*),
-                    character_weapons(*),
-                    character_armor(*)
-                `)
-                .eq('user_id', $user.id);
-
-            if (charactersError) {
-                console.error('Error fetching characters:', charactersError);
-            } else {
-                characters = charactersData;
-            }
-        })();
-    }
 
 </script>
 
@@ -146,10 +167,11 @@
                             {#each $lobbyMembers as player}
                                 <li>
                                     {player.user_name}
-                                    - {player.character_id ? player.character_id.name : 'No character selected'}
+                                    - {characters.find(char => char.id === player.character_id)?.name || 'No character selected'}
                                 </li>
                             {/each}
                         </ul>
+
                     </div>
 
 
